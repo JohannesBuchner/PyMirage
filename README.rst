@@ -26,7 +26,16 @@ Differences to Mirage
 
 Related projects
 ------------------
-* Aubio -- https://github.com/piem/aubio
 * Mirage -- http://hop.at/mirage/
+	* original project
+* Autoqueue plugin for quodlibet (see README) -- https://launchpad.net/autoqueue/trunk
+	* Source: https://bazaar.launchpad.net/~thisfred/autoqueue/trunk/files
+	* Does very much similar things
+	* includes some form of clustering of songs
+	* includes DBUS similarity service
+	* also as "PyMirage" on: https://github.com/georgewhewell/pymirage/
+* Aubio -- https://github.com/piem/aubio
+	* supports some basic feature extraction
+
 
 
