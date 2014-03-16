@@ -39,16 +39,16 @@ class AudioDecoder(object):
 		size = c_int(0)
 		ret = c_int(0)
 		
-		data = lib.mirageaudio_decode(self.ptr, create_string_buffer(filename.encode()), byref(frames), byref(size), byref(ret))
+		data = lib.mirageaudio_decode(self.ptr, create_string_buffer(filename), byref(frames), byref(size), byref(ret))
 		
-		if ret == -1:
+		if ret.value == -1:
 			raise Exception("Decoding failed")
-		elif ret == -2:
+		elif ret.value == -2:
 			raise Exception("Decoding cancelled")
 		elif frames <= 2 or size <= 0:
 			raise Exception("No data found")
 		
-		#print 'mirage decoded {} frames of size {}'.format(frames.value, size.value)
+		#print 'mirage decoded {} frames of size {}. Return value {}'.format(frames.value, size.value, ret.value)
 		
 		frames = frames.value
 		size = size.value

@@ -10,16 +10,10 @@ from filter import Filter
 import scipy.sparse
 
 class SCMS(object):
-	def __init__(self, mfcc):
-		self.dim = len(mfcc)
-		#print 'DIM:', self.dim, mfcc.shape
-		self.mean = mfcc.mean(axis=1)
-		#self.cov = numpy.cov(mfcc)
-		stdev = numpy.asarray(mfcc).std(axis=1)
-		self.cov = numpy.diag(stdev)
-		#self.cov = scipy.sparse.dia_matrix((stdev, [0]), shape=(self.dim, self.dim)).todense()
-		assert self.mean.shape == (self.dim, 1), self.mean.shape
-		assert self.cov.shape == (self.dim, self.dim), self.cov.shape
+	def __init__(self, mean, cov):
+		self.cov = cov
+		self.mean = mean
+		self.dim = self.mean.size
 	
 	def __sub__(self, b):
 		"""
@@ -55,6 +49,9 @@ class SCMS(object):
 		"""
 		symmetrized Kullback Leibler Divergence
 		"""
+		assert b.mean.shape == self.mean.shape, (b.mean.shape, self.mean.shape)
+		assert b.cov.shape == self.cov.shape, (b.cov.shape, self.cov.shape)
+		#print b.mean.shape, b.cov.shape, self.mean.shape, self.cov.shape
 		meandiff = numpy.matrix(b.mean - self.mean)
 		second = numpy.linalg.solve(b.cov, self.cov)
 		first = numpy.linalg.solve(b.cov, meandiff)
@@ -71,6 +68,21 @@ class SCMS(object):
 	def __repr__(self):
 		return """SCMS(dim=%d, means=%s, cov=%s)""" % (self.dim, self.mean, repr(self.cov))
 
+def scms_from_mfcc(mfcc):
+	dim = len(mfcc)
+	#print 'DIM:', self.dim, mfcc.shape
+	mean = mfcc.mean(axis=1)
+	#cov = numpy.cov(mfcc)
+	stdev = numpy.asarray(mfcc).std(axis=1)
+	cov = numpy.diag(stdev)
+	#cov = scipy.sparse.dia_matrix((stdev, [0]), shape=(self.dim, self.dim)).todense()
+	assert mean.shape == (dim, 1), mean.shape
+	assert cov.shape == (dim, dim), cov.shape
+	res = SCMS(mean, cov)
+	assert res.mean.shape == (dim, 1), res.mean.shape
+	assert res.cov.shape == (dim, dim), res.cov.shape
+	return res
+
 #def symmetric_distance(a, b):
 #	return ((a - b) + (b - a)) / 2.
 
@@ -79,13 +91,13 @@ if __name__ == '__main__':
 	numpy.random.seed(0)
 	adata = numpy.random.multivariate_normal([0., 0], [[1., 0], [0, 1]], size=1000)
 	#print 'adata:', adata
-	a = SCMS(adata.T)
+	a = scms_from_mfcc(adata.T)
 	#a.mean[:] = [0, 0]
 	#a.cov[:,:] = [[1., 0], [0, 1]]
 	print 'A:', a.mean, a.cov
 	print a - a
 	bdata = numpy.random.multivariate_normal([1., 1.], [[1., 0.1], [0.1, 1]], size=1000)
-	b = SCMS(bdata.T)
+	b = scms_from_mfcc(bdata.T)
 	#b.mean[:] = [1., 1.]
 	#b.cov[:,:] = [[2., 0.1], [0.1, 2]]
 	print 'B:', b.mean, b.cov

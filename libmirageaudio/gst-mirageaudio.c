@@ -87,7 +87,7 @@ void toc()
     double ms;
     end = clock();
     ms = ((end - start)/(double)(CLOCKS_PER_SEC))*1000.0;
-    g_print("libmirageaudio: time = %f\n", ms);
+    g_debug("libmirageaudio: time = %f\n", ms);
 }
 
 static void
@@ -178,7 +178,7 @@ mirageaudio_cb_have_data(GstElement *element, GstBuffer *buffer, GstPad *pad, Mi
         int err = src_process(ma->src_state, &ma->src_data);
 
         if (err != 0) {
-            g_print("libmirageaudio: SRC Error - %s\n", src_strerror(err));
+            g_debug("libmirageaudio: SRC Error - %s\n", src_strerror(err));
         }
         // return if no output
         if (ma->src_data.output_frames_gen == 0) {
@@ -202,7 +202,7 @@ mirageaudio_cb_have_data(GstElement *element, GstBuffer *buffer, GstPad *pad, Mi
                 fill = ma->winsize - ma->fftwsamples;
 
                 if (fill <= 0)
-                    g_print("libmirageaudio: Logic ERROR! fill <= 0\n");
+                    g_debug("libmirageaudio: Logic ERROR! fill <= 0\n");
 
                 memcpy(ma->fftw+ma->fftwsamples, ma->src_data.data_out+bufferpos, fill*sizeof(float));
                 memset(ma->fftw+ma->winsize, 0, ma->winsize*sizeof(float));
@@ -230,7 +230,7 @@ mirageaudio_cb_have_data(GstElement *element, GstBuffer *buffer, GstPad *pad, Mi
                     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(ma->pipeline));
                     GstMessage* eosmsg = gst_message_new_eos(GST_OBJECT(ma->pipeline));
                     gst_bus_post(bus, eosmsg);
-                    g_print("libmirageaudio: EOS Message sent\n");
+                    g_debug("libmirageaudio: EOS Message sent\n");
                     gst_object_unref(bus);
                     ma->quit = TRUE;
                     gst_buffer_unmap (buffer, &map);
@@ -402,11 +402,11 @@ mirageaudio_decode(MirageAudio *ma, const gchar *file, int *frames, int* size, i
     ma->src_data.input_frames = 0;
     ma->src_data.end_of_input = 0;
     src_reset(ma->src_state);
-    g_print("libmirageaudio: rate=%d, resampling=%f\n", ma->filerate, ma->src_data.src_ratio);
+    g_debug("libmirageaudio: rate=%d, resampling=%f\n", ma->filerate, ma->src_data.src_ratio);
 
     // decode...
     gst_element_set_state(ma->pipeline, GST_STATE_PLAYING);
-    g_print("libmirageaudio: decoding %s\n", file);
+    g_debug("libmirageaudio: decoding %s\n", file);
 
 
     bus = gst_pipeline_get_bus(GST_PIPELINE(ma->pipeline));
@@ -425,7 +425,7 @@ mirageaudio_decode(MirageAudio *ma, const gchar *file, int *frames, int* size, i
                 gchar *debug;
 
                 gst_message_parse_error(message, &err, &debug);
-                g_print("libmirageaudio: error: %s\n", err->message);
+                g_debug("libmirageaudio: error: %s\n", err->message);
                 g_error_free(err);
                 g_free(debug);
                 ma->curhop = 0;
@@ -435,7 +435,7 @@ mirageaudio_decode(MirageAudio *ma, const gchar *file, int *frames, int* size, i
                 break;
             }
             case GST_MESSAGE_EOS: {
-                g_print("libmirageaudio: EOS Message received\n");
+                g_debug("libmirageaudio: EOS Message received\n");
                 decoding = FALSE;
                 break;
             }
@@ -466,14 +466,14 @@ mirageaudio_decode(MirageAudio *ma, const gchar *file, int *frames, int* size, i
 
     g_mutex_unlock(ma->decoding_mutex);
 
-    g_print("libmirageaudio: frames=%d (maxhops=%d), size=%d\n", *frames, ma->hops, *size);
+    g_debug("libmirageaudio: frames=%d (maxhops=%d), size=%d\n", *frames, ma->hops, *size);
     return ma->out;
 }
 
 MirageAudio*
 mirageaudio_destroy(MirageAudio *ma)
 {
-    g_print("libmirageaudio: destroy.\n");
+    g_debug("libmirageaudio: destroy.\n");
     // FFTW cleanup
     fftwf_destroy_plan(ma->fftwplan);
     fftwf_free(ma->fftw);
@@ -514,7 +514,7 @@ mirageaudio_canceldecode(MirageAudio *ma)
             GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(ma->pipeline));
             GstMessage* eosmsg = gst_message_new_eos(GST_OBJECT(ma->pipeline));
             gst_bus_post(bus, eosmsg);
-            g_print("libmirageaudio: EOS Message sent\n");
+            g_debug("libmirageaudio: EOS Message sent\n");
             gst_object_unref(bus);
 
             ma->invalidate = TRUE;

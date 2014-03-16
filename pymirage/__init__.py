@@ -1,7 +1,7 @@
 
 from decoder import AudioDecoder, init_gstreamer
 from filter import Filter
-from analyse import SCMS #, symmetric_distance
+from analyse import scms_from_mfcc, SCMS #, symmetric_distance
 
 class Analyser(object):
 	SAMPLING_RATE = 22050
@@ -18,8 +18,9 @@ class Analyser(object):
 		self.ad.cancel_decode()
 	def analyse(self, filename):
 		stftdata = self.ad.decode(filename)
-		scms = SCMS((self.mfcc * stftdata))
+		scms = scms_from_mfcc((self.mfcc * stftdata))
 		return scms
+	@staticmethod
 	def distance(a, b):
 		return a.distance(b)
 		#return symmetric_distance(a, b)
